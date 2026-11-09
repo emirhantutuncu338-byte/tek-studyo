@@ -47,9 +47,14 @@ powershell -ExecutionPolicy Bypass -File serve.ps1
 `http://localhost:8080/` adresinde açılır. Worker olmadığı için oturum katmanı "geliştirme modu"na
 düşer (kapı devre dışı) ve AI çağrıları doğrudan ücretsiz uç noktalara gider.
 
-**Bilinen sınır:** görsel uç noktası tarayıcıdan çağrıldığında bot koruması ("Turnstile") isteyebilir;
-bu yüzden görsel üretimi yayınlanmış sürümde Worker köprüsü üzerinden çalışır. Seslendirme tarayıcıdan
-da çalışır.
+### AI sağlayıcıları ve yedekler
+
+- **Seslendirme:** `POLLINATIONS_KEY` varsa Pollinations sesi kullanılır; yoksa Worker otomatik olarak
+  Google Translate TTS'e düşer (anahtarsız; metin 180 karakterlik parçalara bölünür ve MP3 kareleri
+  birleştirilir).
+- **Görsel:** istek `referrer` parametresi ve tarayıcı başlıklarıyla gider; Worker anonim kotaya takılırsa
+  uygulama tarayıcıdan doğrudan `image.pollinations.ai` uç noktasını dener (CORS açık).
+- `POLLINATIONS_KEY` eklenince iki modül de tek sağlayıcı üzerinden daha yüksek kotayla çalışır.
 
 ### Dosyalar
 
