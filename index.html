@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d0b14">
+<title>Tek Stüdyo — kurgu, ses, görsel, video</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ---------------- GİRİŞ ---------------- -->
+<div id="gateView" class="gate">
+  <div class="gate-card">
+    <div class="brand big">Tek <b>Stüdyo</b></div>
+    <p class="muted">Burası davetli kullanıcılara açık. Erişim kodunu gir.</p>
+    <form id="loginForm" autocomplete="off">
+      <input id="codeInput" type="password" placeholder="Erişim kodu" aria-label="Erişim kodu" required>
+      <button class="btn primary" type="submit" id="loginBtn">Giriş yap</button>
+    </form>
+    <p id="loginMsg" class="msg"></p>
+    <p class="tiny">Kodun yok mu? Yöneticiden davet kodunu iste.</p>
+  </div>
+</div>
+
+<!-- ---------------- UYGULAMA ---------------- -->
+<div id="appView" class="shell hidden">
+  <header class="topbar">
+    <a class="brand small" href="#home">Tek <b>Stüdyo</b></a>
+    <nav class="nav" id="nav">
+      <a href="#home" data-nav="home">Panel</a>
+      <a href="#editor" data-nav="editor">Kurgu</a>
+      <a href="#voice" data-nav="voice">Ses</a>
+      <a href="#image" data-nav="image">Görsel</a>
+      <a href="#video" data-nav="video">Video</a>
+      <a href="#tools" data-nav="tools">Araçlar</a>
+    </nav>
+    <div class="user">
+      <span id="userName" class="pill"></span>
+      <button id="logoutBtn" class="ghost" type="button">Çıkış</button>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <!-- PANEL -->
+    <section class="view" id="view-home">
+      <h1>Merhaba <span id="helloName"></span> 👋</h1>
+      <p class="muted">Kurgu, seslendirme, görsel ve video üretimi — tek yerden.</p>
+
+      <div class="tiles">
+        <a class="tile" href="#editor">
+          <span class="tile-ico">🎬</span>
+          <h3>Kurgu</h3>
+          <p>Video ve fotoğrafları kes, sırala, yazı ve müzik ekle, dışa aktar.</p>
+        </a>
+        <a class="tile" href="#voice">
+          <span class="tile-ico">🔊</span>
+          <h3>Seslendirme</h3>
+          <p>Metni Türkçe sese çevir, MP3 indir veya doğrudan kurguya ekle.</p>
+        </a>
+        <a class="tile" href="#image">
+          <span class="tile-ico">🖼️</span>
+          <h3>Görsel</h3>
+          <p>Prompt yaz, ücretsiz modelle görsel üret, indir veya videoya çevir.</p>
+        </a>
+        <a class="tile" href="#video">
+          <span class="tile-ico">📹</span>
+          <h3>Video</h3>
+          <p>Görsellerden hareketli video üret; hazır ücretsiz video araçları.</p>
+        </a>
+        <a class="tile" href="#tools">
+          <span class="tile-ico">🧰</span>
+          <h3>Araçlar</h3>
+          <p>Diğer ücretsiz yapay zekâlar tek panoda: promptu kopyala, aracı aç.</p>
+        </a>
+      </div>
+
+      <div class="row-head">
+        <h2>Diğer ücretsiz AI araçları</h2>
+        <a href="#tools" class="tiny muted">Tümü →</a>
+      </div>
+      <div id="homeTools" class="tool-strip"></div>
+
+      <div class="row-head">
+        <h2>Bu hafta</h2>
+        <span class="muted tiny" id="usageNote"></span>
+      </div>
+      <div class="stats" id="statsRow">
+        <div class="stat"><b id="statVoice">0</b><span>seslendirme</span></div>
+        <div class="stat"><b id="statImage">0</b><span>görsel</span></div>
+        <div class="stat"><b id="statClip">0</b><span>kurgu klibi</span></div>
+        <div class="stat"><b id="statExport">0</b><span>dışa aktarım</span></div>
+      </div>
+    </section>
+
+    <!-- KURGU -->
+    <section class="view" id="view-editor">
+      <div class="editor-wrap">
+        <div class="editor-main">
+          <div class="preview-box">
+            <canvas id="stage"></canvas>
+            <div id="stageEmpty" class="stage-empty">
+              <p>Henüz klip yok.</p>
+              <p class="tiny">Aşağıdan video veya fotoğraf ekle.</p>
+            </div>
+          </div>
+          <div class="transport">
+            <button id="playBtn" class="btn" type="button">▶ Oynat</button>
+            <span class="time" id="timeLabel">0.0s / 0.0s</span>
+            <span class="spacer"></span>
+            <button id="exportBtn" class="btn primary" type="button">⤓ Videoyu dışa aktar</button>
+          </div>
+          <div class="transport sub">
+            <label class="inline">Oran
+              <select id="aspectSel">
+                <option value="9:16">9:16 dikey</option>
+                <option value="1:1">1:1 kare</option>
+                <option value="16:9">16:9 yatay</option>
+              </select>
+            </label>
+            <label class="inline">Müzik / ses
+              <input type="file" id="musicInput" accept="audio/*,video/mp4" class="file">
+            </label>
+            <span id="musicName" class="tiny muted">yok</span>
+            <label class="inline">Ses düzeyi
+              <input type="range" id="musicVol" min="0" max="1" step="0.05" value="0.8" class="slider">
+            </label>
+          </div>
+        </div>
+
+        <aside class="editor-side">
+          <div class="side-block">
+            <div class="row-head tight">
+              <h2>Medya</h2>
+              <label class="btn small" for="mediaInput">+ Ekle</label>
+              <input type="file" id="mediaInput" accept="video/*,image/*" multiple hidden>
+            </div>
+            <p class="tiny muted">Video, fotoğraf veya ikisini birlikte ekle. Sırayı değiştirmek için okları kullan.</p>
+          </div>
+
+          <div class="side-block">
+            <div class="row-head tight"><h2>Zaman çizelgesi</h2><span class="tiny muted" id="clipCount">0 klip</span></div>
+            <div id="clipList" class="clip-list"></div>
+          </div>
+
+          <div class="side-block">
+            <div class="row-head tight"><h2>Seçili klip</h2></div>
+            <div id="inspector" class="inspector">
+              <p class="tiny muted">Bir klibe dokun.</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- SESLENDİRME -->
+    <section class="view" id="view-voice">
+      <div class="panel-2col">
+        <div class="card">
+          <h2>Seslendirme metni</h2>
+          <textarea id="voiceText" rows="8" placeholder="Seslendirmek istediğin metni yaz. Örn: Yeni ürünümüzle tanışın…"></textarea>
+          <div class="inline-row">
+            <label class="inline">Ses
+              <select id="voiceSel">
+                <option value="nova">Nova — kadın, sıcak</option>
+                <option value="alloy">Alloy — nötr</option>
+                <option value="shimmer">Shimmer — yumuşak</option>
+                <option value="onyx">Onyx — erkek, derin</option>
+                <option value="echo">Echo — erkek, net</option>
+                <option value="fable">Fable — anlatıcı</option>
+              </select>
+            </label>
+            <span class="spacer"></span>
+            <span class="tiny muted" id="voiceCount">0/800</span>
+          </div>
+          <div class="inline-row">
+            <button id="voiceGen" class="btn primary" type="button">🎙 Seslendir</button>
+            <button id="voiceSys" class="btn" type="button">Tarayıcıdan dinle</button>
+            <span class="spacer"></span>
+            <button id="voiceToEditor" class="btn" type="button">Kurguya ekle</button>
+          </div>
+          <p class="msg" id="voiceMsg"></p>
+          <p class="tiny muted">Ses servisi ücretsiz anahtar isteyebilir: enter.pollinations.ai/keys → sunucuda <b>POLLINATIONS_KEY</b> olarak ekle.</p>
+          <audio id="voiceAudio" controls class="audio hidden"></audio>
+          <div class="inline-row">
+            <a id="voiceDl" class="btn small hidden" download="seslendirme.mp3">MP3 indir</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Hazır sesler</h2>
+          <p class="tiny muted">Tek tıkla denemek için kısa metinler.</p>
+          <div id="voicePresets" class="preset-list"></div>
+          <h2 class="mt">İpuçları</h2>
+          <ul class="tips">
+            <li>Noktalama, duraklamaları belirler; virgül ve nokta kullan.</li>
+            <li>Uzun metni paragraf paragraf üret, kurguda art arda ekle.</li>
+            <li>Sayıları yazıyla yaz: “2026” yerine “iki bin yirmi altı” daha temiz okunur.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- GÖRSEL -->
+    <section class="view" id="view-image">
+      <div class="panel-2col">
+        <div class="card">
+          <h2>Görsel üret</h2>
+          <textarea id="imagePrompt" rows="4" placeholder="Örn: neon ışıklı sokakta yağmur, sinematik, 35mm"></textarea>
+          <div class="chips" id="styleChips"></div>
+          <div class="inline-row">
+            <label class="inline">Boyut
+              <select id="imageSize">
+                <option value="1024x1024">Kare 1024</option>
+                <option value="768x1344">Dikey 9:16</option>
+                <option value="1344x768">Yatay 16:9</option>
+              </select>
+            </label>
+            <label class="inline">Model
+              <select id="imageModel">
+                <option value="flux">Flux (hızlı)</option>
+                <option value="turbo">Turbo (en hızlı)</option>
+              </select>
+            </label>
+            <span class="spacer"></span>
+            <button id="imageGen" class="btn primary" type="button">🖼 Üret</button>
+          </div>
+          <p class="msg" id="imageMsg"></p>
+          <p class="tiny muted">Görsel üretimi sunucu köprüsü ve ücretsiz <b>POLLINATIONS_KEY</b> ile çalışır.</p>
+          <div id="imageGrid" class="image-grid"></div>
+        </div>
+        <div class="card">
+          <h2>Prompt atölyesi</h2>
+          <p class="tiny muted">Parçaları seç, prompt otomatik birleşsin.</p>
+          <div id="promptBuilder" class="builder"></div>
+          <button id="builderApply" class="btn small" type="button">Prompta aktar</button>
+          <h2 class="mt">Son üretilenler</h2>
+          <div id="imageHistory" class="mini-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VİDEO -->
+    <section class="view" id="view-video">
+      <div class="panel-2col">
+        <div class="card">
+          <h2>Görsellerden video</h2>
+          <p class="tiny muted">Fotoğraflarını sıraya koy; her kare yumuşak bir kaydırma ile hareketlenir.</p>
+          <label class="drop" id="videoDrop">
+            <input type="file" id="videoImages" accept="image/*" multiple hidden>
+            <span>Fotoğraf seç veya buraya bırak</span>
+          </label>
+          <div id="videoThumbs" class="thumb-row"></div>
+          <div class="inline-row">
+            <label class="inline">Kare süresi
+              <select id="videoPer">
+                <option value="2">2 sn</option>
+                <option value="3" selected>3 sn</option>
+                <option value="4">4 sn</option>
+                <option value="5">5 sn</option>
+              </select>
+            </label>
+            <label class="inline">Hareket
+              <select id="videoMotion">
+                <option value="zoomIn">Yakınlaş</option>
+                <option value="zoomOut">Uzaklaş</option>
+                <option value="pan">Kaydır</option>
+              </select>
+            </label>
+            <span class="spacer"></span>
+            <button id="videoBuild" class="btn primary" type="button">Kurguda aç</button>
+          </div>
+          <p class="msg" id="videoMsg"></p>
+        </div>
+        <div class="card">
+          <h2>AI video hakkında</h2>
+          <p class="tiny muted">
+            Ücretsiz ve anahtarsız çalışan bir “metinden video” API'si yok (video üretimi GPU'da dakikalar sürer).
+            Bu yüzden burada iki gerçekçi yol var:
+          </p>
+          <div class="notice">
+            <b>1. Yerel video</b>
+            <p class="tiny">Görsellerden hareketli video (yukarıdaki araç) — tamamen ücretsiz, sınırsız, filigransız.</p>
+          </div>
+          <div class="notice">
+            <b>2. Ücretsiz web araçları</b>
+            <p class="tiny">Günlük ücretsiz kredisi olan siteler Araçlar sekmesinde; promptun tek tuşla kopyalanır.</p>
+          </div>
+          <p class="tiny muted">İleride ücretli bir sağlayıcı anahtarı eklenirse bu ekran gerçek metinden-videoya dönüşebilir.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARAÇLAR -->
+    <section class="view" id="view-tools">
+      <h1>Araç panosu</h1>
+      <p class="muted">Promptu burada hazırla, tek tuşla kopyala, ücretsiz aracı yeni sekmede aç.</p>
+
+      <div class="prompt-bar">
+        <textarea id="toolPrompt" rows="2" placeholder="Promptunu yaz… (görsel, video, metin, ses için ortak)"></textarea>
+        <button id="copyPrompt" class="btn primary" type="button">Kopyala</button>
+      </div>
+
+      <div class="chips" id="toolFilters"></div>
+      <div id="toolGrid" class="tool-grid"></div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="js/api.js"></script>
+<script src="js/editor.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

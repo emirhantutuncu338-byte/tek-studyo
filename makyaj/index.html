@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#160d22">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Makyaj Stüdyosu</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+  <section id="selectScreen" class="screen">
+    <header class="top">
+      <h1>Makyaj <span>Stüdyosu</span></h1>
+      <p class="sub">12 karakter · 8 makyaj aleti · sonsuz kombinasyon</p>
+    </header>
+    <div id="charGrid" class="char-grid"></div>
+    <div class="foot-hint">Bir karaktere dokun ve makyajına başla</div>
+  </section>
+
+  <section id="studioScreen" class="screen hidden">
+    <div class="studio-top">
+      <button id="backBtn" class="icon-btn" type="button" aria-label="Geri">&#8249;</button>
+      <div class="who">
+        <div id="studioName" class="who-name">Ada</div>
+        <div id="studioSub" class="who-sub">Makyaj stüdyosu</div>
+      </div>
+      <button id="randomBtnTop" class="icon-btn" type="button" aria-label="Rastgele">&#127922;</button>
+    </div>
+
+    <div class="stage">
+      <div id="stageFrame"><canvas id="faceCanvas"></canvas></div>
+    </div>
+
+    <div class="controls">
+      <div class="tabs" id="tabs">
+        <button class="tab active" type="button" data-tab="cilt">Cilt</button>
+        <button class="tab" type="button" data-tab="goz">Göz</button>
+        <button class="tab" type="button" data-tab="dudak">Dudak</button>
+        <button class="tab" type="button" data-tab="stil">Stil</button>
+      </div>
+      <div class="panel" id="panel"></div>
+      <div class="actions">
+        <button id="randomBtn" class="btn" type="button">&#127922; Karıştır</button>
+        <button id="resetBtn" class="btn" type="button">&#8634; Sıfırla</button>
+        <button id="saveBtn" class="btn primary" type="button">&#128248; Kaydet</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast"></div>
+</div>
+
+<script src="js/characters.js"></script>
+<script src="js/face.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

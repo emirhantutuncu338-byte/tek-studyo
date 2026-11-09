@@ -1,0 +1,15 @@
+{
+  "name": "Makyaj Stüdyosu",
+  "short_name": "Makyaj",
+  "description": "Karakter seç, makyajını yap, fotoğrafını kaydet.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#150d21",
+  "theme_color": "#160d22",
+  "lang": "tr",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

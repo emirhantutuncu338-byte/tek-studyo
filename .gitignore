@@ -1,0 +1,10 @@
+# yerel geliştirme artıkları
+server.log
+*.bin
+.freebuff/
+node_modules/
+
+# çalışma sırasında üretilen ekran görüntüleri (docs/ hariç)
+/ekran-*.png
+/studyo-*.png
+/makyaj-*.png
