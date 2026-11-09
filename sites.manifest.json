@@ -5,5 +5,5 @@
     { "name": "worker.js", "type": "esm", "path": "./worker.js" }
   ],
   "assetsDirectory": "./public",
-  "spa": true
+  "spa": false
 }
