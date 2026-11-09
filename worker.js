@@ -98,6 +98,16 @@ function json(body, status = 200, extra = {}) {
   });
 }
 
+function sameOrigin(request, url) {
+  const origin = request.headers.get('Origin');
+  if (!origin) return true; // form gönderimi / curl
+  try {
+    return new URL(origin).host === url.host;
+  } catch {
+    return false;
+  }
+}
+
 async function currentUser(request, env) {
   if (!env.SESSION_SECRET) return null;
   const payload = await verify(env.SESSION_SECRET, cookieValue(request, COOKIE));
@@ -180,6 +190,7 @@ export default {
     }
 
     if (path === '/api/login' && request.method === 'POST') {
+      if (!sameOrigin(request, url)) return json({ error: 'Geçersiz kaynak.' }, 403);
       if (!env.INVITE_CODES || !env.SESSION_SECRET) {
         return json({ error: 'Sunucu yapılandırması eksik: INVITE_CODES / SESSION_SECRET.' }, 503);
       }
@@ -216,6 +227,7 @@ export default {
     }
 
     if (path === '/api/logout') {
+      if (!sameOrigin(request, url)) return json({ error: 'Geçersiz kaynak.' }, 403);
       return json({ ok: true }, 200, { 'Set-Cookie': `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Secure` });
     }
 

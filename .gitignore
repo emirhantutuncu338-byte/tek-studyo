@@ -8,3 +8,5 @@ node_modules/
 /ekran-*.png
 /studyo-*.png
 /makyaj-*.png
+.secrets/
+/public/
