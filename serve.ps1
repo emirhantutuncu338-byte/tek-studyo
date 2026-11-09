@@ -15,7 +15,7 @@ $types = @{
 $listener = New-Object System.Net.Sockets.TcpListener -ArgumentList ([System.Net.IPAddress]::Any), $Port
 $listener.Start()
 Write-Host ""
-Write-Host "  Makyaj Studyosu calisiyor"
+Write-Host "  Tek Studyo sunucusu calisiyor"
 Write-Host "  Bilgisayar : http://localhost:$Port/"
 Write-Host "  Telefon    : http://<bilgisayarin-ip-adresi>:$Port/   (ayni Wi-Fi aginda)"
 Write-Host "  Kapatmak icin Ctrl+C"

@@ -1,23 +1,16 @@
-# Tek Stüdyo + Makyaj Stüdyosu
+# Tek Stüdyo
 
-Bu klasörde iki ayrı uygulama var:
-
-| Yol | Uygulama | Ne yapar |
-| --- | --- | --- |
-| `/` (kök) | **Tek Stüdyo** | Girişli video kurgu, seslendirme, görsel üretimi ve AI araç panosu |
-| `/makyaj/` | **Makyaj Stüdyosu** | 12 karakterli makyaj oyunu (tek dosya, kurulum yok) |
+Girişli, tek sayfalık video stüdyosu: kurgu, seslendirme, görsel üretimi, video ve ücretsiz AI araç panosu.
+Kurulum gerektirmez; saf HTML/CSS/JS olarak çalışır, erişim kapısı ve AI köprüsü tek bir Cloudflare
+Worker'ında (`worker.js`) durur.
 
 ## Ekran görüntüleri
 
-| Giriş kapısı | Kurgu | Makyaj oyunu |
-| --- | --- | --- |
-| ![Giriş](docs/giris.png) | ![Kurgu](docs/kurgu.png) | ![Makyaj](docs/makyaj.png) |
+| Giriş kapısı | Kurgu |
+| --- | --- |
+| ![Giriş](docs/giris.png) | ![Kurgu](docs/kurgu.png) |
 
----
-
-## 1. Tek Stüdyo
-
-### Modüller
+## Modüller
 
 - **Kurgu** — video/fotoğraf yükle, sırala, klip kes (başlangıç-bitiş), yazı ekle, müzik/seslendirme
   yerleştir; 9:16 / 1:1 / 16:9 oranlarında gerçek zamanlı dışa aktarım (`.webm`).
@@ -27,7 +20,7 @@ Bu klasörde iki ayrı uygulama var:
 - **Video** — fotoğraflardan hareketli video (yakınlaş/kaydır) üretir; ücretsiz video araçlarını listeler.
 - **Araçlar** — 18 ücretsiz AI aracı tek panoda: promptu kopyala, aracı yeni sekmede aç.
 
-### Erişim (sadece davetli kullanıcılar)
+## Erişim (sadece davetli kullanıcılar)
 
 Erişim, sunucu tarafındaki Worker kapısıyla kontrol edilir:
 
@@ -38,7 +31,7 @@ Erişim, sunucu tarafındaki Worker kapısıyla kontrol edilir:
 
 Bu iki değer **Sites → Secrets** içine girilir; kodda saklanmaz.
 
-### Yerel geliştirme
+## Yerel geliştirme
 
 ```bash
 powershell -ExecutionPolicy Bypass -File serve.ps1
@@ -47,7 +40,7 @@ powershell -ExecutionPolicy Bypass -File serve.ps1
 `http://localhost:8080/` adresinde açılır. Worker olmadığı için oturum katmanı "geliştirme modu"na
 düşer (kapı devre dışı) ve AI çağrıları doğrudan ücretsiz uç noktalara gider.
 
-### AI sağlayıcıları ve yedekler
+## AI sağlayıcıları ve yedekler
 
 - **Seslendirme:** `POLLINATIONS_KEY` varsa Pollinations sesi kullanılır; yoksa Worker otomatik olarak
   Google Translate TTS'e düşer (anahtarsız; metin 180 karakterlik parçalara bölünür ve MP3 kareleri
@@ -56,7 +49,7 @@ düşer (kapı devre dışı) ve AI çağrıları doğrudan ücretsiz uç noktal
   uygulama tarayıcıdan doğrudan `image.pollinations.ai` uç noktasını dener (CORS açık).
 - `POLLINATIONS_KEY` eklenince iki modül de tek sağlayıcı üzerinden daha yüksek kotayla çalışır.
 
-### Dosyalar
+## Dosyalar
 
 | Dosya | İşi |
 | --- | --- |
@@ -68,15 +61,12 @@ düşer (kapı devre dışı) ve AI çağrıları doğrudan ücretsiz uç noktal
 | `worker.js` | Erişim kapısı + AI köprüsü (Cloudflare Worker) |
 | `serve.ps1` | Python/Node gerektirmeyen yerel sunucu |
 
-### Dışa aktarma notu
+## Dışa aktarma notu
 
 Kayıt `.webm` (VP9/Opus) olarak yapılır; Chrome/Android ve masaüstünde oynar. iOS Safari `.webm`
 oynatmaz — iPhone için MP4 gerekir, bu ayrı bir kodlama adımı ister.
 
----
+## Ayrı uygulama
 
-## 2. Makyaj Stüdyosu (`/makyaj/`)
-
-12 karakter, 4 sekme (Cilt, Göz, Dudak, Stil), 8 makyaj aleti, rastgele kombinasyon ve 1200×1560 PNG
-kaydetme. `makyaj/index.html` dosyasına çift tıklayarak da açılır; telefonda `serve.ps1` ile
-`http://<ip>:8080/makyaj/` adresinden test edilir.
+Bu stüdyodan bağımsız **Makyaj Stüdyosu** oyunu kendi klasöründe durur: [`makyaj/`](makyaj/README.md).
+Stüdyo sitesine dahil değildir.
