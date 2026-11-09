@@ -110,17 +110,38 @@ window.API = (function () {
     return IMAGE_HOST + '/prompt/' + encodeURIComponent(prompt) + '?' + q;
   }
 
+  function directImageUrl(prompt, opts) {
+    opts = opts || {};
+    var q = 'width=' + (opts.width || 1024) + '&height=' + (opts.height || 1024) +
+      '&model=' + encodeURIComponent(opts.model || 'flux') +
+      '&seed=' + (opts.seed || Math.floor(Math.random() * 1e9)) + '&nologo=true';
+    return IMAGE_HOST + '/prompt/' + encodeURIComponent(prompt) + '?' + q;
+  }
+
   async function image(prompt, opts) {
+    var firstError = null;
     var res = await fetch(imageUrl(prompt, opts), {
       credentials: state.mode === 'worker' ? 'same-origin' : 'omit',
       cache: 'no-store'
     });
     if (!res.ok) {
-      throw new Error(await errorText(res, 'Görsel üretilemedi'));
+      firstError = new Error(await errorText(res, 'Görsel üretilemedi'));
+    } else {
+      var blob = await res.blob();
+      if (blob.size) return blob;
+      firstError = new Error('Görsel boş döndü, tekrar dene.');
     }
-    var blob = await res.blob();
-    if (!blob.size) throw new Error('Görsel boş döndü, tekrar dene.');
-    return blob;
+    // Worker köprüsü kotaya takıldıysa kullanıcının kendi IP'sinden doğrudan dene
+    if (state.mode === 'worker') {
+      try {
+        var direct = await fetch(directImageUrl(prompt, opts), { credentials: 'omit', cache: 'no-store' });
+        if (direct.ok) {
+          var directBlob = await direct.blob();
+          if (directBlob.size) return directBlob;
+        }
+      } catch (e) { /* ilk hatayı bildir */ }
+    }
+    throw firstError || new Error('Görsel üretilemedi');
   }
 
   function mode() { return state.mode; }

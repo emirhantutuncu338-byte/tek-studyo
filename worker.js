@@ -131,9 +131,49 @@ function rateLimited(user, kind, limit, windowSec) {
 }
 
 function upstreamHeaders(env) {
-  const headers = { 'User-Agent': 'TekStudyoo/1.0' };
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36',
+    'Accept': 'image/*,audio/*,*/*'
+  };
   if (env.POLLINATIONS_KEY) headers.Authorization = 'Bearer ' + env.POLLINATIONS_KEY;
   return headers;
+}
+
+/* --- anahtarsız seslendirme: Google Translate TTS, 180 karakterlik parçalar hâlinde --- */
+function chunkText(text, size) {
+  const out = [];
+  let rest = String(text).trim();
+  while (rest.length > size) {
+    let cut = rest.lastIndexOf(' ', size);
+    if (cut < size * 0.5) cut = size;
+    out.push(rest.slice(0, cut).trim());
+    rest = rest.slice(cut).trim();
+  }
+  if (rest) out.push(rest);
+  return out;
+}
+
+async function googleTts(text) {
+  const parts = chunkText(text, 180);
+  const chunks = [];
+  for (const part of parts) {
+    const u = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=tr&q=' + encodeURIComponent(part);
+    const res = await fetch(u, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36',
+        'Referer': 'https://translate.google.com/'
+      }
+    });
+    if (!res.ok) return null;
+    const type = res.headers.get('Content-Type') || '';
+    if (type.indexOf('audio') < 0) return null;
+    chunks.push(new Uint8Array(await res.arrayBuffer()));
+  }
+  if (!chunks.length) return null;
+  const out = new Uint8Array(chunks.reduce((n, c) => n + c.length, 0));
+  let off = 0;
+  for (const c of chunks) { out.set(c, off); off += c.length; }
+  return out;
 }
 
 const LOGIN_HTML = `<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8">
@@ -244,16 +284,28 @@ export default {
         if (text.length > MAX_TTS_CHARS) return json({ error: `Metin en fazla ${MAX_TTS_CHARS} karakter.` }, 400);
         if (rateLimited(user.name, 'voice', 40, 3600)) return json({ error: 'Saatlik seslendirme sınırı doldu.' }, 429);
 
-        const upstream = 'https://gen.pollinations.ai/audio/' + encodeURIComponent(text) + '?voice=' + voice;
-        const res = await fetch(upstream, { headers: upstreamHeaders(env) });
-        if (!res.ok) return json({ error: 'Seslendirme servisi yanıt vermedi (' + res.status + ').' }, 502);
-        return new Response(res.body, {
-          headers: {
-            'Content-Type': res.headers.get('Content-Type') || 'audio/mpeg',
-            'Cache-Control': 'private, max-age=3600',
-            'Content-Disposition': 'inline; filename="seslendirme.mp3"'
-          }
-        });
+        const audioHeaders = {
+          'Content-Type': 'audio/mpeg',
+          'Cache-Control': 'private, max-age=3600',
+          'Content-Disposition': 'inline; filename="seslendirme.mp3"'
+        };
+
+        /* 1) Pollinations sesi (yalnızca anahtar varsa; anahtarsız 401 dönüyor) */
+        if (env.POLLINATIONS_KEY) {
+          try {
+            const upstream = 'https://gen.pollinations.ai/audio/' + encodeURIComponent(text) + '?voice=' + voice;
+            const res = await fetch(upstream, { headers: upstreamHeaders(env) });
+            if (res.ok) return new Response(res.body, { headers: audioHeaders });
+          } catch (e) { /* yedeğe düş */ }
+        }
+
+        /* 2) Anahtarsız yedek: Google Translate TTS */
+        try {
+          const buf = await googleTts(text);
+          if (buf && buf.byteLength) return new Response(buf, { headers: audioHeaders });
+        } catch (e) { /* yedeğe düş */ }
+
+        return json({ error: 'Seslendirme servisine şu an ulaşılamadı, birazdan tekrar dene.' }, 502);
       }
 
       if (path === '/api/ai/image') {
@@ -267,16 +319,34 @@ export default {
         const model = (url.searchParams.get('model') || 'flux').replace(/[^a-z0-9_-]/gi, '');
         const seed = parseInt(url.searchParams.get('seed') || '0', 10) || Math.floor(Math.random() * 1e9);
 
-        const upstream = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(prompt) +
-          `?width=${w}&height=${h}&model=${encodeURIComponent(model)}&seed=${seed}&nologo=true`;
-        const res = await fetch(upstream, { headers: upstreamHeaders(env) });
-        if (!res.ok) return json({ error: 'Görsel servisi yanıt vermedi (' + res.status + ').' }, 502);
-        return new Response(res.body, {
-          headers: {
-            'Content-Type': res.headers.get('Content-Type') || 'image/jpeg',
-            'Cache-Control': 'private, max-age=86400'
-          }
-        });
+        const q = `width=${w}&height=${h}&seed=${seed}&nologo=true`;
+        const attempts = [
+          'https://image.pollinations.ai/prompt/' + encodeURIComponent(prompt) + `?${q}&model=${encodeURIComponent(model)}&referrer=tekstudyo`,
+          'https://image.pollinations.ai/prompt/' + encodeURIComponent(prompt) + `?${q}&model=flux`
+        ];
+
+        let lastStatus = 0;
+        for (const upstream of attempts) {
+          try {
+            const res = await fetch(upstream, { headers: upstreamHeaders(env) });
+            if (res.ok) {
+              return new Response(res.body, {
+                headers: {
+                  'Content-Type': res.headers.get('Content-Type') || 'image/jpeg',
+                  'Cache-Control': 'private, max-age=86400'
+                }
+              });
+            }
+            lastStatus = res.status;
+          } catch (e) { lastStatus = 0; }
+          if (lastStatus !== 402 && lastStatus !== 429) break;
+        }
+
+        return json({
+          error: 'Görsel servisi yanıt vermedi (' + (lastStatus || 'bağlantı') + ').',
+          code: 'upstream',
+          fallback: 'direct'
+        }, 502);
       }
 
       return json({ error: 'Bilinmeyen uç nokta' }, 404);
